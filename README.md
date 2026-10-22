@@ -1,10 +1,10 @@
 # Materialize CLI
 
-A **Rust CLI** that generates PBR (Physically Based Rendering) maps from diffuse textures using GPU compute shaders via [wgpu](https://wgpu.rs/). No GUI — one command, six maps, plus optional Unity HDRP packed maps.
+A **Rust CLI** that generates PBR (Physically Based Rendering) maps from diffuse textures using GPU compute shaders via [wgpu](https://wgpu.rs/). One command, six maps, plus optional Unity HDRP packed maps — from the terminal, or from a window if you prefer one.
 
 Inspired by the original [Materialize](https://github.com/BoundingBoxSoftware/Materialize) (Unity/Windows). For a Portuguese version, see [README_PT.md](README_PT.md).
 
-**Who is this for?** Game developers, 3D artists, and anyone who needs PBR maps from diffuse textures — in engines like Unity, Unreal, Godot, or in Blender, without running a GUI or the Windows-only original.
+**Who is this for?** Game developers, 3D artists, and anyone who needs PBR maps from diffuse textures — in engines like Unity, Unreal, Godot, or in Blender, without the Windows-only original.
 
 ---
 
@@ -40,6 +40,19 @@ With `--unity`, two more channel-packed maps for Unity HDRP:
 ---
 
 ## Quick start
+
+### macOS app
+
+For a double-clickable app instead of a terminal — same maps, same exports,
+with a window and a drop zone:
+
+```bash
+./macos/build-app.sh              # builds dist/Materialize.app
+./macos/build-app.sh --install    # ...and copies it to /Applications
+```
+
+Apple silicon, macOS 12+. The bundle carries its own copy of the CLI, so it
+runs with nothing else installed. See [macos/README.md](macos/README.md).
 
 ### Install (recommended)
 
@@ -176,6 +189,7 @@ if [ $? -eq 0 ]; then echo "OK"; fi
 - [docs/algorithms.md](docs/algorithms.md) — Processing algorithms
 - [docs/shaders.md](docs/shaders.md) — WGSL shaders
 - [docs/roadmap.md](docs/roadmap.md) — Future plans
+- [macos/README.md](macos/README.md) — The macOS app bundle
 - [ui/README.md](ui/README.md) — The local web UI
 
 ---
