@@ -52,6 +52,20 @@ pub fn save_image(
                 .encode_image(&rgb)
                 .with_context(|| format!("Failed to save JPEG: {}", path.display()))?;
         }
+        ImageFormat::OpenExr => {
+            // The OpenEXR encoder only accepts 32-bit float buffers, but every
+            // map we produce is 8-bit (Luma8, Rgb8 or Rgba8), so convert first.
+            // Grayscale maps widen to RGB because EXR has no 1-channel path here,
+            // and the packed maps keep their alpha, which carries real data.
+            let float_img = if image.color().has_alpha() {
+                DynamicImage::ImageRgba32F(image.to_rgba32f())
+            } else {
+                DynamicImage::ImageRgb32F(image.to_rgb32f())
+            };
+            float_img
+                .save_with_format(path, format)
+                .with_context(|| format!("Failed to save image: {}", path.display()))?;
+        }
         _ => {
             image
                 .save_with_format(path, format)
@@ -210,6 +224,49 @@ mod tests {
         assert_eq!(p.smoothness_path, "./output/brick_smoothness.jpg");
         assert_eq!(p.edge_path, "./output/brick_edge.jpg");
         assert_eq!(p.ao_path, "./output/brick_ao.jpg");
+    }
+
+    #[test]
+    fn test_save_exr_roundtrip() {
+        // Grayscale maps are Luma8; the OpenEXR encoder rejects that directly.
+        let dir = std::env::temp_dir().join("materialize_exr_test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("height.exr");
+
+        let img = height_to_image(2, 2, &[0.0f32, 0.5, 1.0, 0.25]);
+        save_image(&img, path.to_str().unwrap(), ImageFormat::OpenExr, 95)
+            .expect("EXR save should succeed for a grayscale map");
+
+        let reloaded = image::open(&path).expect("saved EXR should be readable");
+        assert_eq!(reloaded.width(), 2);
+        assert_eq!(reloaded.height(), 2);
+
+        // Luma8 widens to RGB, and 0.5 quantised to 127 on the way in.
+        let px = reloaded.to_rgb32f();
+        assert!((px.get_pixel(0, 0)[0] - 0.0).abs() < 1e-5);
+        assert!((px.get_pixel(1, 0)[0] - 127.0 / 255.0).abs() < 1e-5);
+        assert!((px.get_pixel(0, 1)[0] - 1.0).abs() < 1e-5);
+
+        std::fs::remove_file(&path).ok();
+    }
+
+    #[test]
+    fn test_save_exr_normal_map() {
+        let dir = std::env::temp_dir().join("materialize_exr_test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("normal.exr");
+
+        let data = vec![128u8, 128, 255, 255, 0, 255, 0, 255,
+                        255, 0, 0, 255, 64, 64, 200, 255];
+        let img = normal_to_image(2, 2, &data);
+        save_image(&img, path.to_str().unwrap(), ImageFormat::OpenExr, 95)
+            .expect("EXR save should succeed for an RGB map");
+
+        let reloaded = image::open(&path).expect("saved EXR should be readable");
+        let px = reloaded.to_rgb32f();
+        assert!((px.get_pixel(0, 0)[2] - 1.0).abs() < 1e-5);
+
+        std::fs::remove_file(&path).ok();
     }
 
     #[test]
