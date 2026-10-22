@@ -176,6 +176,7 @@ if [ $? -eq 0 ]; then echo "OK"; fi
 - [docs/algorithms.md](docs/algorithms.md) — Processing algorithms
 - [docs/shaders.md](docs/shaders.md) — WGSL shaders
 - [docs/roadmap.md](docs/roadmap.md) — Future plans
+- [ui/README.md](ui/README.md) — The local web UI
 
 ---
 
