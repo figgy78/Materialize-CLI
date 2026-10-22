@@ -1,6 +1,6 @@
 # Materialize CLI
 
-A **Rust CLI** that generates PBR (Physically Based Rendering) maps from diffuse textures using GPU compute shaders via [wgpu](https://wgpu.rs/). No GUI, no Unity — just one command and six maps.
+A **Rust CLI** that generates PBR (Physically Based Rendering) maps from diffuse textures using GPU compute shaders via [wgpu](https://wgpu.rs/). No GUI — one command, six maps, plus optional Unity HDRP packed maps.
 
 Inspired by the original [Materialize](https://github.com/BoundingBoxSoftware/Materialize) (Unity/Windows). For a Portuguese version, see [README_PT.md](README_PT.md).
 
@@ -20,6 +20,13 @@ From a single diffuse/albedo image, the tool outputs six maps:
 | **Smoothness** | Roughness/smoothness (base + metallic contribution) |
 | **Edge** | Edge detection derived from normals |
 | **AO** | Ambient occlusion (cavity-style from height) |
+
+With `--unity`, two more channel-packed maps for Unity HDRP:
+
+| Map | Channels |
+|-----|----------|
+| **Mask Map** | R Metallic, G Ambient Occlusion, B Detail Mask, A Smoothness |
+| **Detail Map** | R Desaturated albedo, G Normal Y, B Smoothness, A Normal X |
 
 ---
 
@@ -85,6 +92,7 @@ materialize [OPTIONS] [INPUT] [COMMAND]
 | `--quality` | `-q` | `95` | JPEG quality (0–100) when using `-f jpg` |
 | `--verbose` | `-v` | — | Print progress and timing |
 | `--quiet` | — | — | Do not list generated files on success |
+| `--unity` | — | — | Also write the HDRP mask and detail maps (needs png, tga or exr) |
 | `--help` | `-h` | — | Show help |
 | `--version` | `-V` | — | Show version |
 
@@ -133,6 +141,9 @@ materialize texture.png -f exr -o ./out/
 
 # Batch (parallel with xargs)
 ls *.png | xargs -P 4 -I {} materialize {} -o ./output/
+
+# Unity HDRP: adds brick_maskmap.png and brick_detail.png
+materialize brick.png -o ./out/ --unity
 
 # Script-friendly: quiet, check exit code
 materialize texture.png -o ./out/ --quiet

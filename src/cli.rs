@@ -37,7 +37,7 @@ impl std::fmt::Display for OutputFormat {
 #[command(name = "materialize")]
 #[command(about = "Generate PBR maps (height, normal, metallic, smoothness, edge, AO) from diffuse textures")]
 #[command(version = env!("CARGO_PKG_VERSION"))]
-#[command(after_help = "EXAMPLES:\n  materialize texture.png -o ./out/\n  materialize diffuse.png --format png -v\n  materialize skill install")]
+#[command(after_help = "EXAMPLES:\n  materialize texture.png -o ./out/\n  materialize diffuse.png --format png -v\n  materialize texture.png --unity\n  materialize skill install")]
 pub struct Cli {
     #[command(subcommand)]
     pub subcommand: Option<CliSubcommand>,
@@ -59,6 +59,9 @@ pub struct Cli {
 
     #[arg(long, help = "Suppress 'Generated' file list on success")]
     pub quiet: bool,
+
+    #[arg(long, help = "Also write Unity HDRP mask and detail maps (needs an alpha-capable format)")]
+    pub unity: bool,
 }
 
 #[derive(Subcommand, Debug)]

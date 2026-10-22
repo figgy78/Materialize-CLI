@@ -11,6 +11,8 @@ pub struct OutputPaths {
     pub smoothness_path: String,
     pub edge_path: String,
     pub ao_path: String,
+    pub mask_path: String,
+    pub detail_path: String,
 }
 
 pub fn load_image(path: &str) -> Result<DynamicImage> {
@@ -98,6 +100,8 @@ pub fn get_output_paths(
         smoothness_path: format!("{}/{}_smoothness.{}", output_dir, input_name, ext),
         edge_path: format!("{}/{}_edge.{}", output_dir, input_name, ext),
         ao_path: format!("{}/{}_ao.{}", output_dir, input_name, ext),
+        mask_path: format!("{}/{}_maskmap.{}", output_dir, input_name, ext),
+        detail_path: format!("{}/{}_detail.{}", output_dir, input_name, ext),
     }
 }
 

@@ -1,4 +1,5 @@
 mod cli;
+mod composite;
 mod gpu;
 mod io;
 mod pipeline;
@@ -53,6 +54,13 @@ async fn run() -> anyhow::Result<()> {
     let edge_img = io::edge_to_image(width, height, &maps.edge);
     let ao_img = io::ao_to_image(width, height, &maps.ao);
 
+    // JPEG has no alpha, and both packed maps carry real data there.
+    if args.unity && matches!(args.format, cli::OutputFormat::Jpg) {
+        anyhow::bail!(
+            "--unity needs an alpha channel; JPEG has none. Use -f png, tga or exr."
+        );
+    }
+
     let format_str = format!("{}", args.format);
     let paths = io::get_output_paths(&input, &args.output, &format_str);
     let image_format = io::output_format_to_image_format(&args.format);
@@ -64,6 +72,14 @@ async fn run() -> anyhow::Result<()> {
     io::save_image(&edge_img, &paths.edge_path, image_format, args.quality)?;
     io::save_image(&ao_img, &paths.ao_path, image_format, args.quality)?;
 
+    if args.unity {
+        let mask_img =
+            composite::mask_to_image(width, height, &maps.metallic, &maps.ao, &maps.smoothness);
+        let detail_img = composite::detail_to_image(width, height, &image, &maps.smoothness);
+        io::save_image(&mask_img, &paths.mask_path, image_format, args.quality)?;
+        io::save_image(&detail_img, &paths.detail_path, image_format, args.quality)?;
+    }
+
     if !args.quiet {
         println!("Generated:");
         println!("  - {}", paths.height_path);
@@ -72,6 +88,10 @@ async fn run() -> anyhow::Result<()> {
         println!("  - {}", paths.smoothness_path);
         println!("  - {}", paths.edge_path);
         println!("  - {}", paths.ao_path);
+        if args.unity {
+            println!("  - {}", paths.mask_path);
+            println!("  - {}", paths.detail_path);
+        }
     }
 
     Ok(())
